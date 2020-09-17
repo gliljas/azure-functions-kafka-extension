@@ -121,9 +121,13 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                 SslKeyLocation = resolvedSslKeyLocation,
                 SslKeyPassword = entity.Attribute.SslKeyPassword,
                 SslCertificateLocation = resolvedSslCertificationLocation,
-                SslCaLocation = resolvedSslCaLocation,
-                CompressionLevel = entity.Attribute.CompressionLevel
+                SslCaLocation = resolvedSslCaLocation
             };
+
+            if (entity.Attribute.CompressionLevel != -1)
+            {
+                conf.CompressionLevel = entity.Attribute.CompressionLevel;
+            }
 
             if (entity.Attribute.CompressionType != MessageCompressionType.NotSet)
             {
