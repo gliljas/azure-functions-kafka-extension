@@ -144,10 +144,10 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         /// 
         /// </summary>
         public int? CompressionLevel { get; set; }
-        
+
         /// <summary>
         /// Compression codec to use for compressing message sets. 
         /// </summary>
-        public MessageCompressionType CompressionType { get; set; }
+        public MessageCompressionType CompressionType { get; set; } = MessageCompressionType.NotSet;
     }
 }
