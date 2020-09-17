@@ -139,5 +139,15 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         /// ssl.key.password in librdkafka
         /// </summary>
         public string SslKeyPassword { get; set; }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public int? CompressionLevel { get; set; }
+        
+        /// <summary>
+        /// Compression codec to use for compressing message sets. 
+        /// </summary>
+        public MessageCompressionType CompressionType { get; set; }
     }
 }
