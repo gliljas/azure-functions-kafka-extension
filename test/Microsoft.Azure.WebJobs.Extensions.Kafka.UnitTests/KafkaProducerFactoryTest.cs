@@ -322,8 +322,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka.UnitTests
             var entity = new KafkaProducerEntity
             {
                 Attribute = attribute
-            };
-
+            }
+            
             var factory = new KafkaProducerFactory(emptyConfiguration, new DefaultNameResolver(emptyConfiguration), NullLoggerProvider.Instance);
             var config = factory.GetProducerConfig(entity);
 
@@ -335,6 +335,32 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka.UnitTests
             Assert.Equal(attribute.MessageTimeoutMs, config.MessageTimeoutMs);
             Assert.Equal(attribute.RequestTimeoutMs, config.RequestTimeoutMs);
             Assert.Equal(attribute.EnableDeliveryReports, config.EnableDeliveryReports);
+        }
+        
+        [Theory]
+        [InlineData(MessageCompressionType.NotSet, null)]
+        [InlineData(MessageCompressionType.None, CompressionType.None)]
+        [InlineData(MessageCompressionType.Gzip, CompressionType.Gzip)]
+        [InlineData(MessageCompressionType.Snappy, CompressionType.Snappy)]
+        [InlineData(MessageCompressionType.Lz4, CompressionType.Lz4)]
+        [InlineData(MessageCompressionType.Zstd, CompressionType.Zstd)]
+        public void GetProducerConfig_When_CompressionType_Defined_Should_Set_CompressionType(MessageCompressionType sourceType, CompressionType? targetType)
+        {
+            var attribute = new KafkaAttribute("brokers:9092", "myTopic")
+            {
+                CompressionType = sourceType
+            };
+
+            var entity = new KafkaProducerEntity()
+            {
+                Attribute = attribute,
+                ValueType = typeof(ProtoUser),
+            };
+
+            var factory = new KafkaProducerFactory(emptyConfiguration, new DefaultNameResolver(emptyConfiguration), NullLoggerProvider.Instance);
+            var config = factory.GetProducerConfig(entity);
+            
+            Assert.Equal(targetType, config.CompressionType);
         }
     }
 }

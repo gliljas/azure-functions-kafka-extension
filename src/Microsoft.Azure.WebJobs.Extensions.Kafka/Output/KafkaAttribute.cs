@@ -139,6 +139,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         /// ssl.key.password in librdkafka
         /// </summary>
         public string SslKeyPassword { get; set; }
+
         
         /// <summary>
         /// Specifies whether to enable notification of delivery reports. Typically you should
@@ -146,5 +147,16 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         /// a small boost in performance. default: true importance: low
         /// </summary>
         public bool? EnableDeliveryReports { get; set; }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int CompressionLevel { get; set; } = -1;
+
+        /// <summary>
+        /// Compression codec to use for compressing message sets. 
+        /// </summary>
+        public MessageCompressionType CompressionType { get; set; } = MessageCompressionType.NotSet;
     }
 }
