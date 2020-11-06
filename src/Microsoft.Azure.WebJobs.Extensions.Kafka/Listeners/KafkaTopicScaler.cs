@@ -41,6 +41,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             this.Descriptor = new ScaleMonitorDescriptor($"{functionId}-kafkatrigger-{topicName}-{consumerGroup}".ToLower());
             this.topicPartitions = new Lazy<List<TopicPartition>>(LoadTopicPartitions);
             this.consumerGroup = consumerGroup;
+            this.logger.LogInformation("KafkaTopicScaler for {topic} constructed", topic);
         }
 
         protected virtual List<TopicPartition> LoadTopicPartitions()
@@ -85,6 +86,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             var allPartitions = topicPartitions.Value;
             if (allPartitions == null)
             {
+                this.logger.LogInformation("GetMetricsAsync returns 0");
                 return Task.FromResult(new KafkaTriggerMetrics(0L, 0));
             }
 
@@ -98,6 +100,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                 // Alternatively we could use consumer.GetWatermarkOffsets() that returns cached values, without blocking.
                 var watermark = consumer.QueryWatermarkOffsets(topicPartition, operationTimeout);
 
+               
                 var commited = ownedCommittedOffset.FirstOrDefault(x => x.Partition == topicPartition.Partition);
                 if (commited != null)
                 {
@@ -131,11 +134,13 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
 
         public ScaleStatus GetScaleStatus(ScaleStatusContext context)
         {
+            this.logger.LogInformation("GetScaleStatus");
             return GetScaleStatusCore(context.WorkerCount, context.Metrics?.OfType<KafkaTriggerMetrics>().ToArray());
         }
 
         public ScaleStatus GetScaleStatus(ScaleStatusContext<KafkaTriggerMetrics> context)
         {
+            this.logger.LogInformation("GetScaleStatus");
             return GetScaleStatusCore(context.WorkerCount, context.Metrics?.ToArray());
         }
 
@@ -151,6 +156,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             // At least 5 samples are required to make a scale decision for the rest of the checks.
             if (metrics == null || metrics.Length < NumberOfSamplesToConsider)
             {
+                this.logger.LogInformation("Not enough metrics to consider scaling");
                 return status;
             }
 
