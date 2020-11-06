@@ -3,23 +3,30 @@
 
 using Confluent.Kafka;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Microsoft.Azure.WebJobs.Extensions.Kafka
 {
     public class KafkaEventData<TKey, TValue> : IKafkaEventData, IKafkaEventDataWithHeaders
     {
         public TKey Key { get; set; }
+
+        protected IKafkaEventDataHeaders headers;
+        
         public long Offset { get; set; }
         public int Partition { get; set; }
         public string Topic { get; set; }
-        public IKafkaEventDataHeaders Headers { get; } = new KafkaEventDataHeaders();
         public DateTime Timestamp { get; set; }
         public TValue Value { get; set; }
 
         object IKafkaEventData.Value => this.Value;
 
-        object IKafkaEventData.Key => this.Key;
+        object IKafkaEventData.Key => Key;
+
+        public IKafkaEventDataHeaders Headers => LazyInitializer.EnsureInitialized(ref headers, () => new HeadersProxy(this));
 
         public KafkaEventData()
         {
@@ -28,7 +35,6 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         public KafkaEventData(TKey key, TValue value)
         {
             this.Key = key;
-            this.Value = value;
         }
 
         public KafkaEventData(ConsumeResult<TKey, TValue> consumeResult)
@@ -39,31 +45,53 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             this.Partition = consumeResult.Partition;
             this.Timestamp = consumeResult.Message.Timestamp.UtcDateTime;
             this.Topic = consumeResult.Topic;
-            this.Headers = new KafkaEventDataHeaders(consumeResult.Message.Headers);
+            if (consumeResult.Message.Headers?.Count > 0)
+            {
+                this.headers = new KafkaEventDataHeaders(consumeResult.Message.Headers);
+            }
         }
+
+        #region IKafkaEventDataHeaders
+
+        private class HeadersProxy : IKafkaEventDataHeaders
+        {
+            private static readonly IEnumerable<IKafkaEventDataHeader> EmptyHeaders = new IKafkaEventDataHeader[] { };
+            private readonly KafkaEventData<TKey, TValue> eventData;
+            private bool headersCreated = false;
+
+            public HeadersProxy(KafkaEventData<TKey, TValue> eventData)
+            {
+                this.eventData = eventData;
+            }
+            private IKafkaEventDataHeaders EnsureHeadersCreated()
+            {
+                if (!headersCreated)
+                {
+                    Interlocked.CompareExchange(ref eventData.headers, new KafkaEventDataHeaders(), this);
+                    headersCreated = true;
+                }
+                return eventData.headers;
+            }
+
+            int IKafkaEventDataHeaders.Count => 0;
+
+            void IKafkaEventDataHeaders.Add(string key, byte[] value) => EnsureHeadersCreated().Add(key, value);
+
+            IEnumerator<IKafkaEventDataHeader> IEnumerable<IKafkaEventDataHeader>.GetEnumerator() => EmptyHeaders.GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator() => EmptyHeaders.GetEnumerator();
+        }
+        #endregion
     }
 
-    public class KafkaEventData<TValue> : IKafkaEventData, IKafkaEventDataWithHeaders
+    public class KafkaEventData<TValue> : KafkaEventData<object, TValue>
     {
-        public long Offset { get; set; }
-        public int Partition { get; set; }
-        public string Topic { get; set; }
-        public DateTime Timestamp { get; set; }
-        public TValue Value { get; set; }
-
-        object IKafkaEventData.Value => this.Value;
-
-        object IKafkaEventData.Key => null;
-
-        public IKafkaEventDataHeaders Headers { get; private set; } = new KafkaEventDataHeaders();
-
-        public KafkaEventData()
+        public KafkaEventData() : base()
         {
         }
 
-        public KafkaEventData(TValue value)
+        public KafkaEventData(TValue value) : base(null, value)
         {
-            this.Value = value;
         }
 
         internal static KafkaEventData<TValue> CreateFrom<TKey>(ConsumeResult<TKey, TValue> consumeResult)
@@ -79,7 +107,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
 
             if (consumeResult.Message?.Headers?.Count > 0)
             {
-                result.Headers = new KafkaEventDataHeaders(consumeResult.Message.Headers);
+                result.headers = new KafkaEventDataHeaders(consumeResult.Message.Headers);
             }
             return result;
         }
@@ -93,8 +121,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             this.Topic = src.Topic;
             if (src is IKafkaEventDataWithHeaders srcWithHeaders)
             {
-                this.Headers = new KafkaEventDataHeaders(srcWithHeaders.Headers.Select(x=>new KafkaEventDataHeader(x.Key, x.Value)));
+                this.headers = new KafkaEventDataHeaders(srcWithHeaders.Headers.Select(x => new KafkaEventDataHeader(x.Key, x.Value)));
             }
-        }        
+        }
     }
 }
