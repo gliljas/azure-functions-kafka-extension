@@ -82,6 +82,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
 
         public Task<KafkaTriggerMetrics> GetMetricsAsync()
         {
+            logger.LogInformation("GetMetricsAsync called");
             var operationTimeout = TimeSpan.FromSeconds(5);
             var allPartitions = topicPartitions.Value;
             if (allPartitions == null)
@@ -96,6 +97,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             long totalLag = 0L;
             foreach (var topicPartition in allPartitions)
             {
+                logger.LogInformation("GetMetricsAsync {partition}", topicPartition.Partition.Value);
                 // This call goes to the server always which probably yields the most accurate results. It blocks.
                 // Alternatively we could use consumer.GetWatermarkOffsets() that returns cached values, without blocking.
                 var watermark = consumer.QueryWatermarkOffsets(topicPartition, operationTimeout);
@@ -127,6 +129,10 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             if (partitionWithHighestLag != Partition.Any)
             {
                 logger.LogInformation("Total lag in '{topic}' is {totalLag}, highest partition lag found in {partition} with value of {offsetDifference}", this.topicName, totalLag, partitionWithHighestLag.Value, highestPartitionLag);
+            }
+            else
+            {
+                logger.LogInformation("GetMetricsAsync partitionWithHighestLag == Partition.Any");
             }
 
             return Task.FromResult(new KafkaTriggerMetrics(totalLag, allPartitions.Count));
