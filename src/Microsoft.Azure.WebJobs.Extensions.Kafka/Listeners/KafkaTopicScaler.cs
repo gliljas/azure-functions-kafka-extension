@@ -192,7 +192,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             if (totalLag > workerCount * lagThreshold)
             {
                 if (workerCount < partitionCount)
-                { 
+                {
                     status.Vote = ScaleVote.ScaleOut;
 
                     if (this.logger.IsEnabled(LogLevel.Information))
@@ -202,7 +202,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                 }
                 return status;
             }
-            
+
             // Samples are in chronological order. Check for a continuous increase in unprocessed message count.
             // If detected, this results in an automatic scale out for the site container.
             if (metrics[0].TotalLag > 0)
@@ -226,7 +226,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                     }
                 }
             }
-            
+
             if (workerCount > 1)
             {
                 bool queueLengthDecreasing = IsTrueForLast(
@@ -247,11 +247,31 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                         if (this.logger.IsEnabled(LogLevel.Information))
                         {
                             this.logger.LogInformation("Total lag length is decreasing for topic {topicName}, for consumer group {consumerGroup}.", this.topicName, this.consumerGroup);
-                        }                    
-                    }                
+                        }
+                    }
                 }
             }
-              
+
+            if (workerCount > 1)
+            {
+                var proposedWorkerCount = workerCount - 1;
+               
+                bool allSamplesBelowThreshold = IsTrueForLast(
+                    metrics,
+                    NumberOfSamplesToConsider,
+                    (prev, next) => next.TotalLag < (lagThreshold * proposedWorkerCount));
+
+                if (allSamplesBelowThreshold)
+                {
+                    status.Vote = ScaleVote.ScaleIn;
+
+                    if (this.logger.IsEnabled(LogLevel.Information))
+                    {
+                        this.logger.LogInformation("Total lag length is decreasing for topic {topicName}, for consumer group {consumerGroup}.", this.topicName, this.consumerGroup);
+                    }
+                }
+            }
+
             return status;
         }
 
