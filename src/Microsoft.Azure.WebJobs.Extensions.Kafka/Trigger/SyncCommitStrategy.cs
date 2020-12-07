@@ -8,14 +8,14 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.Azure.WebJobs.Extensions.Kafka
 {
     /// <summary>
-    /// Asynchronous commit strategy
+    /// Synchronous commit strategy
     /// </summary>
-    public class AsyncCommitStrategy<TKey, TValue> : ICommitStrategy<TKey, TValue>
+    public class SyncCommitStrategy<TKey, TValue> : ICommitStrategy<TKey, TValue>
     {
         private readonly IConsumer<TKey, TValue> consumer;
         private readonly ILogger logger;
 
-        public AsyncCommitStrategy(IConsumer<TKey, TValue> consumer, ILogger logger)
+        public SyncCommitStrategy(IConsumer<TKey, TValue> consumer, ILogger logger)
         {
             this.consumer = consumer;
             this.logger = logger;
@@ -23,11 +23,10 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
 
         public void Commit(IEnumerable<TopicPartitionOffset> topicPartitionOffsets)
         {
+            this.consumer.Commit(topicPartitionOffsets);
             foreach (var tpo in topicPartitionOffsets)
             {
-                this.consumer.StoreOffset(tpo);
-
-                this.logger.LogInformation("Stored commit offset {topic} / {partition} / {offset}",
+                this.logger.LogInformation("Committed offset {topic} / {partition} / {offset}",
                     tpo.Topic,
                     tpo.Partition,
                     tpo.Offset);

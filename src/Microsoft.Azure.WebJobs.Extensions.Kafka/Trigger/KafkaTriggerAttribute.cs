@@ -107,6 +107,11 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         /// </summary>
         public string SslKeyPassword { get; set; }
 
+        /// <summary>
+        /// The commit strategy to use. With the default <see cref="ICommitStrategyFactory"/>, it's either "async", which commits offset asynchronously according to `auto.commit.interval.ms`, or "sync" which commits them synchronously.
+        /// Default: async
+        /// </summary>
+        public string CommitStrategy { get; set; } = CommitStrategies.Async;
 
         bool IsValidValueType(Type value)
         {

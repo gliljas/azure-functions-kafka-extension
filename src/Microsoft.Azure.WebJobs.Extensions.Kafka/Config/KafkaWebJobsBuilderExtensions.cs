@@ -37,6 +37,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             });
 
             builder.Services.AddSingleton<IKafkaProducerFactory, KafkaProducerFactory>();
+            builder.Services.AddSingleton<ICommitStrategyFactory, DefaultCommitStrategyFactory>();
 
             return builder;
         }

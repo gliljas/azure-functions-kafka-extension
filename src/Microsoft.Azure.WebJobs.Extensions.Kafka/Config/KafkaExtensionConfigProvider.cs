@@ -29,6 +29,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         private readonly INameResolver nameResolver;
         private readonly IWebJobsExtensionConfiguration<KafkaExtensionConfigProvider> configuration;
         private readonly IKafkaProducerFactory kafkaProducerFactory;
+        private readonly ICommitStrategyFactory commitStrategyFactory;
         private readonly ILogger logger;
 
         public KafkaExtensionConfigProvider(
@@ -38,7 +39,9 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             IConverterManager converterManager,
             INameResolver nameResolver,
             IWebJobsExtensionConfiguration<KafkaExtensionConfigProvider> configuration,
-            IKafkaProducerFactory kafkaProducerFactory)
+            IKafkaProducerFactory kafkaProducerFactory,
+            ICommitStrategyFactory commitStrategyFactory
+            )
         {
             this.config = config;
             this.options = options;
@@ -47,6 +50,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             this.nameResolver = nameResolver;
             this.configuration = configuration;
             this.kafkaProducerFactory = kafkaProducerFactory;
+            this.commitStrategyFactory = commitStrategyFactory;
             this.logger = loggerFactory.CreateLogger(LogCategories.CreateTriggerCategory("Kafka"));
         }
 
@@ -55,7 +59,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             configuration.ConfigurationSection.Bind(options);
 
             // register our trigger binding provider
-            var triggerBindingProvider = new KafkaTriggerAttributeBindingProvider(config, options, converterManager, nameResolver, loggerFactory);
+            var triggerBindingProvider = new KafkaTriggerAttributeBindingProvider(config, options, converterManager, nameResolver, commitStrategyFactory, loggerFactory);
             context.AddBindingRule<KafkaTriggerAttribute>()
                 .BindToTrigger(triggerBindingProvider);
 

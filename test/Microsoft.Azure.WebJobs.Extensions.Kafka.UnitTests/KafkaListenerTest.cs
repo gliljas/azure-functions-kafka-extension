@@ -81,6 +81,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka.UnitTests
                 listenerConfig,
                 requiresKey: true,
                 valueDeserializer: null,
+                commitStrategyFactory: new DefaultCommitStrategyFactory(),
                 logger: NullLogger.Instance,
                 functionId: "testId"
                 );
@@ -144,6 +145,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka.UnitTests
                 listenerConfig,
                 requiresKey: true,
                 valueDeserializer: null,
+                commitStrategyFactory: new DefaultCommitStrategyFactory(),
                 logger: NullLogger.Instance,
                 functionId: "testId"
                 );
@@ -266,6 +268,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka.UnitTests
                 listenerConfig,
                 requiresKey: true,
                 valueDeserializer: null,
+                commitStrategyFactory: new DefaultCommitStrategyFactory(),
                 NullLogger.Instance,
                 functionId: "testId"
                 );
@@ -334,6 +337,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka.UnitTests
                 listenerConfig,
                 requiresKey: true,
                 valueDeserializer: null,
+                commitStrategyFactory: new DefaultCommitStrategyFactory(),
                 NullLogger.Instance,
                 functionId: "testId"
                 );
@@ -384,6 +388,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka.UnitTests
                 listenerConfig,
                 requiresKey: true,
                 valueDeserializer: null,
+                commitStrategyFactory: new DefaultCommitStrategyFactory(),
                 NullLogger.Instance,
                 functionId: "testId"
                 );
@@ -430,6 +435,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka.UnitTests
                 listenerConfig,
                 requiresKey: true,
                 valueDeserializer: null,
+                commitStrategyFactory: new DefaultCommitStrategyFactory(),
                 NullLogger.Instance,
                 functionId: "testId"
                 );
@@ -463,6 +469,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka.UnitTests
                 listenerConfig,
                 requiresKey: true,
                 valueDeserializer: null,
+                commitStrategyFactory: new DefaultCommitStrategyFactory(),
                 NullLogger.Instance,
                 functionId: "testId"
                 );
@@ -567,6 +574,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka.UnitTests
                 listenerConfig,
                 requiresKey: true,
                 valueDeserializer: null,
+                commitStrategyFactory: new DefaultCommitStrategyFactory(),
                 NullLogger.Instance,
                 functionId: "testId"
                 );

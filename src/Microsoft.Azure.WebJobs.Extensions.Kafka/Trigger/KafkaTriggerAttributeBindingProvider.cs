@@ -21,6 +21,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         private readonly IConfiguration config;
         private readonly IConverterManager converterManager;
         private readonly INameResolver nameResolver;
+        private readonly ICommitStrategyFactory commitStrategyFactory;
         private readonly IOptions<KafkaOptions> options;
         private readonly ILogger logger;
 
@@ -29,11 +30,13 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             IOptions<KafkaOptions> options,
             IConverterManager converterManager,
             INameResolver nameResolver,
+            ICommitStrategyFactory commitStrategyFactory,
             ILoggerFactory loggerFactory)
         {
             this.config = config;
             this.converterManager = converterManager;
             this.nameResolver = nameResolver;
+            this.commitStrategyFactory = commitStrategyFactory;
             this.options = options;
             this.logger = loggerFactory.CreateLogger(LogCategories.CreateTriggerCategory("Kafka"));
         }   
@@ -75,6 +78,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                     listenerConfiguration,
                     requiresKey,
                     valueDeserializer,
+                    commitStrategyFactory,
                     this.logger,
                     factoryContext.Descriptor.Id);
                 
@@ -92,6 +96,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                 ConsumerGroup = this.config.ResolveSecureSetting(nameResolver, attribute.ConsumerGroup),
                 Topic = this.config.ResolveSecureSetting(nameResolver, attribute.Topic),
                 EventHubConnectionString = this.config.ResolveSecureSetting(nameResolver, attribute.EventHubConnectionString),
+                CommitStrategy = this.config.ResolveSecureSetting(nameResolver, attribute.CommitStrategy),
             };
 
             if (attribute.AuthenticationMode != BrokerAuthenticationMode.NotSet || 

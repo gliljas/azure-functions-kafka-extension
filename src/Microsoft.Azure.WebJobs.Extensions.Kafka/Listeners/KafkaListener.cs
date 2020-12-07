@@ -37,6 +37,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         private readonly KafkaListenerConfiguration listenerConfiguration;
         // Indicates if the consumer requires the Kafka element key
         private readonly bool requiresKey;
+        private readonly ICommitStrategyFactory commitStrategyFactory;
         private readonly ILogger logger;
         private FunctionExecutorBase<TKey, TValue> functionExecutor;
         private Lazy<IConsumer<TKey, TValue>> consumer;
@@ -62,10 +63,12 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             KafkaListenerConfiguration kafkaListenerConfiguration,
             bool requiresKey,
             IDeserializer<TValue> valueDeserializer,
+            ICommitStrategyFactory commitStrategyFactory,
             ILogger logger,
             string functionId)
         {
             this.ValueDeserializer = valueDeserializer;
+            this.commitStrategyFactory = commitStrategyFactory;
             this.executor = executor;
             this.singleDispatch = singleDispatch;
             this.options = options;
@@ -125,7 +128,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         public Task StartAsync(CancellationToken cancellationToken)
         {
             var localConsumer = this.consumer.Value;
-            var commitStrategy = new AsyncCommitStrategy<TKey, TValue>(localConsumer, this.logger);
+            var commitStrategy = commitStrategyFactory.Create(listenerConfiguration.CommitStrategy, localConsumer, logger);
 
             this.functionExecutor = singleDispatch ?
                 (FunctionExecutorBase<TKey, TValue>)new SingleItemFunctionExecutor<TKey, TValue>(executor, localConsumer, this.options.ExecutorChannelCapacity, this.options.ChannelFullRetryIntervalInMs, commitStrategy, logger) :
@@ -152,13 +155,10 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             ConsumerConfig conf = new ConsumerConfig()
             {
                 // enable auto-commit 
-                EnableAutoCommit = true,
+                EnableAutoCommit = this.options.EnableAutoCommit,
 
                 // disable auto storing read offsets since we need to store them after calling the trigger function
                 EnableAutoOffsetStore = false,
-
-                // Interval in which commits stored in memory will be saved
-                AutoCommitIntervalMs = this.options.AutoCommitIntervalMs,
 
                 // Librdkafka debug options               
                 Debug = this.options.LibkafkaDebug,
@@ -189,6 +189,12 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                 MetadataMaxAgeMs = this.options.MetadataMaxAgeMs,
                 SocketKeepaliveEnable = this.options.SocketKeepaliveEnable
             };
+
+            if (this.options.EnableAutoCommit)
+            {
+                // Interval in which commits stored in memory will be saved
+                conf.AutoCommitIntervalMs = this.options.AutoCommitIntervalMs;
+            }
 
             if (string.IsNullOrEmpty(this.listenerConfiguration.EventHubConnectionString))
             {

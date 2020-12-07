@@ -219,6 +219,13 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             }
         }
 
+        /// <summary>
+        /// Automatically and periodically commit offsets in the background.
+        /// Default = true
+        /// Librdkafka: enable.auto.commit
+        /// </summary>
+        public bool EnableAutoCommit { get; set; } = true;
+
         public string Format()
         {
             var serializerSettings = new JsonSerializerSettings()

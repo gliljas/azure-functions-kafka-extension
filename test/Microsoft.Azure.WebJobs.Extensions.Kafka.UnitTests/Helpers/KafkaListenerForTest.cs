@@ -26,6 +26,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka.UnitTests
             KafkaListenerConfiguration kafkaListenerConfiguration,
             bool requiresKey,
             IDeserializer<TValue> valueDeserializer,
+            ICommitStrategyFactory commitStrategyFactory,
             ILogger logger, 
             string functionId)
             : base(executor,
@@ -34,6 +35,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka.UnitTests
                 kafkaListenerConfiguration,
                 requiresKey,
                 valueDeserializer,
+                commitStrategyFactory,
                 logger,
                 functionId)
         {

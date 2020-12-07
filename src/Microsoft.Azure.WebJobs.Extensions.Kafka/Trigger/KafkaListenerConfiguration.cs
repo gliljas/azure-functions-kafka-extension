@@ -93,6 +93,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         /// ssl.key.password in librdkafka
         /// </summary>
         public string SslKeyPassword { get; set; }
+        public string CommitStrategy { get; set; } = "async";
 
         internal void ApplyToConfig(ClientConfig conf)
         {
