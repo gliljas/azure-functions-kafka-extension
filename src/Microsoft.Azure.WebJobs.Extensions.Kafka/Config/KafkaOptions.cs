@@ -219,6 +219,22 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
             }
         }
 
+        /// <summary>
+        /// Default compression level parameter for algorithm selected by configuration property <see cref="CompressionType"/>
+        /// Can be overridden by setting <see cref="KafkaAttribute.CompressionLevel"/>
+        /// 
+        /// compression.level in librdkafka
+        /// </summary>
+        public int? CompressionLevel { get; set; }
+
+        /// <summary>
+        /// Default compression codec to use for compressing message sets.
+        /// Can be overridden by setting <see cref="KafkaAttribute.CompressionType"/>
+        /// 
+        /// compression.codec in librdkafka
+        /// </summary>
+        public MessageCompressionType? CompressionType { get; set; }
+
         public string Format()
         {
             var serializerSettings = new JsonSerializerSettings()

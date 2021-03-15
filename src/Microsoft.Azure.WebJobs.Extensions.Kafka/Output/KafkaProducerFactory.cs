@@ -131,12 +131,12 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
                 Debug = kafkaOptions?.LibkafkaDebug,
                 MetadataMaxAgeMs = kafkaOptions?.MetadataMaxAgeMs,
                 SocketKeepaliveEnable = kafkaOptions?.SocketKeepaliveEnable,
-                CompressionLevel = entity.Attribute.CompressionLevel 
+                CompressionLevel = entity.Attribute.DefinedCompressionLevel ?? kafkaOptions.CompressionLevel ?? -1
             };
 
-            if (entity.Attribute.CompressionType != MessageCompressionType.NotSet)
+            if ((entity.Attribute.DefinedCompressionType ?? kafkaOptions.CompressionType) != MessageCompressionType.NotSet)
             {
-                conf.CompressionType = (CompressionType)entity.Attribute.CompressionType;
+                conf.CompressionType = (CompressionType)(entity.Attribute.DefinedCompressionType ?? kafkaOptions.CompressionType);
             }
 
             if (entity.Attribute.AuthenticationMode != BrokerAuthenticationMode.NotSet)

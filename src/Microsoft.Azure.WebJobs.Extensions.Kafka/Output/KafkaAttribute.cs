@@ -15,7 +15,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
     [Binding]
     public sealed class KafkaAttribute : Attribute
     {
-        private int? compressionLevel;
+        internal int? DefinedCompressionLevel;
+        internal MessageCompressionType? DefinedCompressionType;
         private int? maxMessageBytes;
         private int? batchSize;
         private bool? enableIdempotence;
@@ -152,12 +153,12 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         /// Compression level parameter for algorithm selected by configuration property <see cref="CompressionType"/>
         /// compression.level in librdkafka
         /// </summary>
-        public int CompressionLevel { get => compressionLevel.GetValueOrDefault(-1); set => compressionLevel = value; }
+        public int CompressionLevel { set => DefinedCompressionLevel = value; }
 
         /// <summary>
         /// Compression codec to use for compressing message sets. 
         /// compression.codec in librdkafka
         /// </summary>
-        public MessageCompressionType CompressionType { get; set; } = MessageCompressionType.NotSet;
+        public MessageCompressionType CompressionType { set => DefinedCompressionType = value; }
     }
 }
