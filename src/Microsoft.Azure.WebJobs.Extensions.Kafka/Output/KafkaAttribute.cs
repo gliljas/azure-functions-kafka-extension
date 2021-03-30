@@ -13,16 +13,20 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
     [Binding]
-    public sealed class KafkaAttribute : Attribute
+    public sealed class KafkaAttribute : Attribute, IProducerOptions
     {
-        internal int? DefinedCompressionLevel;
-        internal MessageCompressionType? DefinedCompressionType;
+        private BrokerAuthenticationMode? authenticationMode;
+        private BrokerProtocol? protocol;
+        private int? compressionLevel;
+        private MessageCompressionType? compressionType;
         private int? maxMessageBytes;
+        private int? metadataMaxAgeMs;
         private int? batchSize;
         private bool? enableIdempotence;
         private int? messageTimeoutMs;
         private int? requestTimeoutMs;
         private int? maxRetries;
+        private bool? socketKeepAliveEnabled;
 
         /// <summary>
         /// Initialize a new instance of the <see cref="KafkaAttribute"/>
@@ -63,7 +67,14 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         /// <summary>
         /// Gets or sets the Maximum transmit message size. Default: 1MB
         /// </summary>
-        public int MaxMessageBytes { get => maxMessageBytes.GetValueOrDefault(1000000); set => maxMessageBytes = value; }
+        public int MaxMessageBytes { get => maxMessageBytes.GetValueOrDefault(); set => maxMessageBytes = value; }
+
+        // <summary>
+        // Metadata cache max age. 
+        // https://github.com/Azure/azure-functions-kafka-extension/issues/187
+        // default: 180000 
+        // </summary>
+        public int MetadataMaxAgeMs { get => metadataMaxAgeMs.GetValueOrDefault(); set => metadataMaxAgeMs = value; }
 
         /// <summary>
         /// Maximum number of messages batched in one MessageSet. default: 10000
@@ -78,18 +89,18 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         /// <summary>
         /// Local message timeout. This value is only enforced locally and limits the time a produced message waits for successful delivery. A time of 0 is infinite. This is the maximum time used to deliver a message (including retries). Delivery error occurs when either the retry count or the message timeout are exceeded. default: 300000
         /// </summary>
-        public int MessageTimeoutMs { get => messageTimeoutMs.GetValueOrDefault(300000); set => messageTimeoutMs = value; }
+        public int MessageTimeoutMs { get => messageTimeoutMs.GetValueOrDefault(); set => messageTimeoutMs = value; }
 
         /// <summary>
         /// The ack timeout of the producer request in milliseconds. default: 5000
         /// </summary>
-        public int RequestTimeoutMs { get => requestTimeoutMs.GetValueOrDefault(5000); set => requestTimeoutMs = value; }
+        public int RequestTimeoutMs { get => requestTimeoutMs.GetValueOrDefault(); set => requestTimeoutMs = value; }
 
         /// <summary>
         /// How many times to retry sending a failing Message. **Note:** default: 2 
         /// </summary>
         /// <remarks>Retrying may cause reordering unless <c>EnableIdempotence</c> is set to <c>true</c>.</remarks>
-        public int MaxRetries { get => maxRetries.GetValueOrDefault(2); set => maxRetries = value; }
+        public int MaxRetries { get => maxRetries.GetValueOrDefault(); set => maxRetries = value; }
 
         /// <summary>
         /// SASL mechanism to use for authentication. 
@@ -98,7 +109,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         /// 
         /// sasl.mechanism in librdkafka
         /// </summary>
-        public BrokerAuthenticationMode AuthenticationMode { get; set; } = BrokerAuthenticationMode.NotSet;
+        public BrokerAuthenticationMode AuthenticationMode { get => authenticationMode.GetValueOrDefault(); set => authenticationMode = value; }
 
         /// <summary>
         /// SASL username for use with the PLAIN and SASL-SCRAM-.. mechanisms
@@ -122,7 +133,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         /// 
         /// security.protocol in librdkafka
         /// </summary>
-        public BrokerProtocol Protocol { get; set; } = BrokerProtocol.NotSet;
+        public BrokerProtocol Protocol { get => protocol.GetValueOrDefault(); set => protocol = value; }
 
         /// <summary>
         /// Path to client's private key (PEM) used for authentication.
@@ -153,12 +164,44 @@ namespace Microsoft.Azure.WebJobs.Extensions.Kafka
         /// Compression level parameter for algorithm selected by configuration property <see cref="CompressionType"/>
         /// compression.level in librdkafka
         /// </summary>
-        public int CompressionLevel { set => DefinedCompressionLevel = value; }
+        public int CompressionLevel { get => compressionLevel.GetValueOrDefault(); set => compressionLevel = value; }
 
         /// <summary>
         /// Compression codec to use for compressing message sets. 
         /// compression.codec in librdkafka
         /// </summary>
-        public MessageCompressionType CompressionType { set => DefinedCompressionType = value; }
+        public MessageCompressionType CompressionType { get => compressionType.GetValueOrDefault(); set => compressionType = value; }
+
+        public bool SocketKeepAliveEnabled { get => socketKeepAliveEnabled.GetValueOrDefault(); set => socketKeepAliveEnabled = value; }
+
+        int? IProducerOptions.BatchSize => batchSize;
+        int? IProducerOptions.CompressionLevel => compressionLevel;
+        MessageCompressionType? IProducerOptions.CompressionType => compressionType;
+
+        bool? IProducerOptions.EnableIdempotence => enableIdempotence;
+
+        
+        int? IProducerOptions.MessageTimeoutMs => messageTimeoutMs;
+        int? IProducerOptions.MaxMessageBytes => maxMessageBytes;
+
+        int? IProducerOptions.MaxRetries => maxRetries;
+
+        int? IProducerOptions.RequestTimeoutMs => requestTimeoutMs;
+
+        BrokerAuthenticationMode? IProducerOptions.AuthenticationMode => authenticationMode;
+
+        int? IProducerOptions.MetadataMaxAgeMs => metadataMaxAgeMs;
+
+        BrokerProtocol? IProducerOptions.Protocol => protocol;
+
+        bool? IProducerOptions.SocketKeepaliveEnable => socketKeepAliveEnabled;
+
+        string IProducerOptions.SslCaLocation => SslCaLocation;
+
+        string IProducerOptions.SslCertificateLocation => SslCertificateLocation;
+
+        string IProducerOptions.SslKeyLocation => SslKeyLocation;
+
+        string IProducerOptions.SslKeyPassword => SslKeyPassword;
     }
 }
